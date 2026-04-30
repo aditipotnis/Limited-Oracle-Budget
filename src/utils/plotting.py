@@ -128,37 +128,53 @@ def plot_multi_panel(
     window=100,
     last_n=100,
 ):
-    """Produce and save all three standard plots for one (env, algorithm) pair.
+    """Produce and save a single summary figure with two subplots.
+
+    The figure contains (left to right):
+    1. Smoothed learning curves
+    2. Help-usage fraction bar chart
 
     Args:
         results_dict (dict[str, EpisodeMetrics]): Mapping from config label to metrics.
         env_name (str): Environment name (used in titles and file names).
         algo_name (str): Algorithm name (used in titles and file names).
-        output_dir (str): Directory where figures are saved.
+        output_dir (str): Directory where the figure is saved.
         window (int): Reward smoothing window.
         last_n (int): Window for computing final metrics.
 
     Returns:
-        tuple[Figure, Figure, Figure]: Learning-curve, success-rate, and
-            help-usage figures.
+        matplotlib.figure.Figure: The combined summary figure.
     """
-    prefix = os.path.join(output_dir, f"{env_name}_{algo_name}")
-    fig1 = plot_learning_curves(
-        results_dict,
-        title=f"{env_name} – {algo_name}: Learning Curves",
-        window=window,
-        save_path=f"{prefix}_learning_curves.png",
-    )
-    fig2 = plot_success_rates(
-        results_dict,
-        title=f"{env_name} – {algo_name}: Final Success Rate",
-        last_n=last_n,
-        save_path=f"{prefix}_success_rates.png",
-    )
-    fig3 = plot_help_usage(
-        results_dict,
-        title=f"{env_name} – {algo_name}: Help Usage",
-        last_n=last_n,
-        save_path=f"{prefix}_help_usage.png",
-    )
-    return fig1, fig2, fig3
+    labels = list(results_dict.keys())
+    colors = plt.get_cmap("tab10")(np.linspace(0, 1, len(labels)))
+
+    fig, axes = plt.subplots(1, 2, figsize=(13, 5))
+    fig.suptitle(f"{env_name} – {algo_name}", fontsize=13, fontweight="bold")
+
+    # --- Left: smoothed learning curves ---
+    ax0 = axes[0]
+    for (label, metrics), color in zip(results_dict.items(), colors):
+        smoothed = metrics.smoothed_rewards(window=window)
+        ax0.plot(smoothed, label=label, color=color)
+    ax0.set_title("Learning Curves")
+    ax0.set_xlabel("Episode")
+    ax0.set_ylabel("Smoothed Reward")
+    ax0.legend(loc="lower right", fontsize=7)
+    ax0.grid(True, alpha=0.3)
+
+    # --- Right: help usage bar chart ---
+    ax2 = axes[1]
+    fractions = [m.mean_help_fraction(last_n=last_n) for m in results_dict.values()]
+    bars2 = ax2.bar(labels, fractions, color=colors)
+    ax2.bar_label(bars2, fmt="%.3f", padding=3, fontsize=8)
+    ax2.set_ylim(0, max(max(fractions) * 1.2, 0.1))
+    ax2.set_title(f"Help Usage (last {last_n} eps)")
+    ax2.set_ylabel("Mean Help Fraction")
+    ax2.set_xlabel("Configuration")
+    ax2.tick_params(axis="x", rotation=20)
+
+    fig.tight_layout()
+    save_path = os.path.join(output_dir, f"{env_name}_{algo_name}_summary.png")
+    os.makedirs(os.path.dirname(save_path) or ".", exist_ok=True)
+    fig.savefig(save_path, dpi=150)
+    return fig

@@ -366,7 +366,7 @@ def parse_args():
     parser.add_argument(
         "--seeds",
         type=int,
-        default=3,
+        default=10,
         help="Number of random seeds to average over (default: 3)",
     )
     parser.add_argument(
