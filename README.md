@@ -57,7 +57,7 @@ pip install -r requirements.txt
 ## Running Experiments
 
 ```bash
-# Full suite (both environments, both algorithms, 3 seeds, 2000 episodes)
+# Full suite (both environments, both algorithms, 10 seeds, 2000 episodes)
 python experiments/run_experiments.py
 
 # Quick smoke test (300 episodes, 2 seeds)
