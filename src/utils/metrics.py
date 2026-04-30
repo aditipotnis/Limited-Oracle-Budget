@@ -47,7 +47,9 @@ class EpisodeMetrics:
         if len(rewards) < window:
             return rewards
         kernel = np.ones(window) / window
-        return np.convolve(rewards, kernel, mode="same")
+        half = window // 2
+        padded = np.pad(rewards, (half, half), mode="edge")
+        return np.convolve(padded, kernel, mode="valid")[: len(rewards)]
 
     def success_rate(self, last_n=100):
         """Fraction of the last *last_n* episodes in which the goal was reached.
