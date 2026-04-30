@@ -20,7 +20,7 @@ venv/
 htmlcov/
 
 # Experiment outputs (generated figures)
-results/
+# results/
 
 # Jupyter
 .ipynb_checkpoints/
