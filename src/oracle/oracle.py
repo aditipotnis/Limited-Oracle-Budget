@@ -1,4 +1,5 @@
-"""Oracle policy implementations.
+"""
+Oracle policy implementations.
 
 Three oracle variants are provided:
 - PerfectOracle  : always recommends the optimal action.
@@ -11,12 +12,6 @@ import numpy as np
 
 
 class PerfectOracle:
-    """Oracle that always returns the optimal action for a given state.
-
-    Args:
-        optimal_policy (array-like): Mapping from state index to optimal action index.
-    """
-
     def __init__(self, optimal_policy):
         self.optimal_policy = np.asarray(optimal_policy, dtype=int)
 
@@ -26,18 +21,6 @@ class PerfectOracle:
 
 
 class NoisyOracle:
-    """Oracle that returns the optimal action with probability ``accuracy``.
-
-    With probability ``1 - accuracy`` a uniformly random action is returned
-    instead, simulating an imperfect expert.
-
-    Args:
-        optimal_policy (array-like): Mapping from state index to optimal action.
-        n_actions (int): Number of base environment actions.
-        accuracy (float): Probability in [0, 1] of giving the correct action.
-        seed (int | None): Optional random seed for reproducibility.
-    """
-
     def __init__(self, optimal_policy, n_actions, accuracy=0.8, seed=None):
         self.optimal_policy = np.asarray(optimal_policy, dtype=int)
         self.n_actions = n_actions
@@ -52,13 +35,6 @@ class NoisyOracle:
 
 
 class RandomOracle:
-    """Oracle that always returns a uniformly random action.
-
-    Args:
-        n_actions (int): Number of base environment actions.
-        seed (int | None): Optional random seed for reproducibility.
-    """
-
     def __init__(self, n_actions, seed=None):
         self.n_actions = n_actions
         self.rng = np.random.default_rng(seed)

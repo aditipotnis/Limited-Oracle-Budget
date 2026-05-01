@@ -4,16 +4,16 @@ a limited oracle help mechanism.
 Design
 ------
 * The base action space is extended with one additional *help* action
-  (index ``n_base_actions``).
+  (index n_base_actions).
 * The observation is augmented to encode the remaining help budget:
     encoded_state = env_obs * (max_budget + 1) + remaining_budget
 * When the agent takes the *help* action:
     - If budget > 0: the oracle is queried, its recommended base action is
-      executed, one budget unit is consumed, and ``help_penalty`` is added to
+      executed, one budget unit is consumed, and help_penalty is added to
       the step reward.
-    - If budget == 0: a ``no_budget_penalty`` is applied to the reward and a
+    - If budget == 0: a no_budget_penalty is applied to the reward and a
       random base action is executed (the agent wasted a turn).
-* For the *unlimited budget* case set ``max_budget=None``.  Budget is never
+* For the *unlimited budget* case set max_budget=None.  Budget is never
   depleted; the observation is just the raw environment observation.
 """
 
@@ -22,19 +22,6 @@ import numpy as np
 
 
 class OracleEnv:
-    """Discrete environment wrapper with oracle-help augmentation.
-
-    Args:
-        env_name (str): Registered Gymnasium environment ID.
-        oracle: Oracle object with a ``get_action(state) -> int`` method.
-        max_budget (int | None): Maximum help units available per episode.
-            Pass ``None`` for unlimited help (budget never depleted).
-        help_penalty (float): Reward penalty applied each time help is used.
-        no_budget_penalty (float): Reward penalty when help is attempted with
-            an empty budget.
-        **env_kwargs: Extra keyword arguments forwarded to ``gym.make``.
-    """
-
     UNLIMITED = None  # sentinel for unlimited budget
 
     def __init__(
@@ -74,20 +61,11 @@ class OracleEnv:
     # ------------------------------------------------------------------
 
     def encode_state(self, obs, budget):
-        """Encode ``(obs, budget)`` as a single integer state index.
-
-        For unlimited-budget environments the budget dimension is omitted and
-        the raw observation is returned unchanged.
-        """
         if self.unlimited:
             return int(obs)
         return int(obs) * (self.max_budget + 1) + int(budget)
 
     def decode_state(self, state):
-        """Decode a state index into ``(obs, budget)``.
-
-        For unlimited-budget environments budget is returned as ``None``.
-        """
         if self.unlimited:
             return int(state), None
         budget = state % (self.max_budget + 1)
@@ -99,33 +77,12 @@ class OracleEnv:
     # ------------------------------------------------------------------
 
     def reset(self, seed=None):
-        """Reset the underlying environment and the help budget.
-
-        Returns:
-            state (int): Encoded initial state.
-            info (dict): Info dictionary from the base environment.
-        """
         obs, info = self.base_env.reset(seed=seed)
         self._current_obs = int(obs)
         self._remaining_budget = 0 if self.unlimited else self.max_budget
         return self.encode_state(self._current_obs, self._remaining_budget), info
 
     def step(self, action):
-        """Take a step in the environment.
-
-        Args:
-            action (int): An action index in ``[0, n_actions)``.  Action
-                ``help_action`` triggers the oracle; all others are forwarded
-                directly to the base environment.
-
-        Returns:
-            state (int): Encoded next state.
-            reward (float): Modified step reward.
-            terminated (bool): Episode termination flag.
-            truncated (bool): Episode truncation flag.
-            info (dict): Info dict; includes ``'used_help'`` (bool) and,
-                when help was used, ``'oracle_action'`` (int).
-        """
         if action == self.help_action:
             if self.unlimited or self._remaining_budget > 0:
                 oracle_action = self.oracle.get_action(self._current_obs)
@@ -138,7 +95,6 @@ class OracleEnv:
                 info["used_help"] = True
                 info["oracle_action"] = oracle_action
             else:
-                # Budget exhausted: take a random action and apply penalty
                 fallback_action = int(self.base_env.action_space.sample())
                 obs, reward, terminated, truncated, info = self.base_env.step(
                     fallback_action
@@ -156,7 +112,6 @@ class OracleEnv:
         return state, reward, terminated, truncated, info
 
     def close(self):
-        """Close the underlying environment."""
         self.base_env.close()
 
     # ------------------------------------------------------------------

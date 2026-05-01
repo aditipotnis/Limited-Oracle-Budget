@@ -1,32 +1,8 @@
-"""Main experiment runner for the Limited Oracle Budget project.
-
-Run all experiments comparing Q-learning and SARSA with and without oracle
-access under various budget, penalty, and oracle-quality conditions.
-
-Usage::
-
-    python experiments/run_experiments.py [--env ENV] [--algo ALGO]
-                                          [--episodes N] [--seeds N]
-                                          [--output DIR] [--quick]
-
-Examples::
-
-    # Full experiment suite (both envs, both algorithms, 5 seeds)
-    python experiments/run_experiments.py
-
-    # Quick smoke test (fewer episodes and seeds)
-    python experiments/run_experiments.py --quick
-
-    # Only CliffWalking with Q-learning
-    python experiments/run_experiments.py --env CliffWalking-v1 --algo qlearning
-"""
-
 import argparse
 import os
 import sys
 import time
 
-# Ensure src is importable when running from the repo root.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import gymnasium as gym
@@ -41,9 +17,6 @@ from experiments.training import (
 from src.environments.oracle_env import OracleEnv
 from src.utils.plotting import plot_multi_panel
 
-# ---------------------------------------------------------------------------
-# Experiment configuration
-# ---------------------------------------------------------------------------
 
 ENVIRONMENTS = {
     "CliffWalking-v1": {"max_steps": 200, "env_kwargs": {}},
@@ -78,11 +51,6 @@ ORACLE_TYPES = [
 # Help-penalty variants applied when budget > 0
 HELP_PENALTIES = [0.0, -0.1, -0.5]
 
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
 def _budget_label(budget):
     return "unlimited" if budget is None else str(budget)
 
@@ -101,7 +69,6 @@ def _config_label(oracle_type, accuracy, budget, penalty):
 
 
 def make_env_factory(env_name, oracle, budget, penalty, env_kwargs):
-    """Return a zero-argument callable that constructs a fresh OracleEnv."""
     def factory():
         return OracleEnv(
             env_name=env_name,
@@ -115,15 +82,10 @@ def make_env_factory(env_name, oracle, budget, penalty, env_kwargs):
 
 
 def make_baseline_factory(env_name, env_kwargs):
-    """Return a factory for a plain Gymnasium environment (no oracle)."""
     def factory():
         return gym.make(env_name, **env_kwargs)
     return factory
 
-
-# ---------------------------------------------------------------------------
-# Core experiment: vary budgets for one (env, algo, oracle, penalty) setting
-# ---------------------------------------------------------------------------
 
 def run_budget_comparison(
     env_name,
@@ -140,11 +102,6 @@ def run_budget_comparison(
     env_kwargs,
     output_dir,
 ):
-    """Train with multiple budget levels and collect metrics for comparison.
-
-    Returns:
-        dict[str, EpisodeMetrics]
-    """
     results = {}
 
     # --- No-oracle baseline (standard RL, budget=0 means no help possible) ---
@@ -190,10 +147,6 @@ def run_budget_comparison(
     return results
 
 
-# ---------------------------------------------------------------------------
-# Top-level experiment suite
-# ---------------------------------------------------------------------------
-
 def run_all_experiments(
     env_names,
     algo_names,
@@ -201,15 +154,6 @@ def run_all_experiments(
     n_seeds,
     output_dir,
 ):
-    """Execute the full experiment grid and save plots.
-
-    Experiment dimensions:
-    * Environments  : CliffWalking-v1, FrozenLake-v1
-    * Algorithms    : Q-learning, SARSA
-    * Oracle types  : perfect, noisy (80 %), noisy (50 %), random
-    * Help penalties: 0.0, -0.1, -0.5
-    * Budgets       : 0 (baseline), 5, 10, 20, unlimited
-    """
     os.makedirs(output_dir, exist_ok=True)
 
     for env_name in env_names:

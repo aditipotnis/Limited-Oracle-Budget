@@ -1,5 +1,3 @@
-"""Training loop helpers shared by Q-learning and SARSA experiments."""
-
 import numpy as np
 import gymnasium as gym
 
@@ -16,16 +14,6 @@ from src.utils.metrics import EpisodeMetrics
 # ---------------------------------------------------------------------------
 
 def compute_optimal_policy(env_name, gamma=0.99, **env_kwargs):
-    """Solve *env_name* with value iteration and return the optimal policy.
-
-    Args:
-        env_name (str): Gymnasium environment ID.
-        gamma (float): Discount factor used for value iteration.
-        **env_kwargs: Extra kwargs forwarded to ``gym.make``.
-
-    Returns:
-        np.ndarray: Integer array mapping each state to its optimal action.
-    """
     env = gym.make(env_name, **env_kwargs)
     _, policy = value_iteration(env, gamma=gamma)
     env.close()
@@ -37,18 +25,6 @@ def compute_optimal_policy(env_name, gamma=0.99, **env_kwargs):
 # ---------------------------------------------------------------------------
 
 def make_oracle(oracle_type, optimal_policy, n_actions, accuracy=0.8, seed=None):
-    """Instantiate an oracle of the requested type.
-
-    Args:
-        oracle_type (str): One of ``"perfect"``, ``"noisy"``, or ``"random"``.
-        optimal_policy (np.ndarray): Optimal policy (used by perfect/noisy).
-        n_actions (int): Number of base environment actions.
-        accuracy (float): Accuracy parameter for the noisy oracle.
-        seed (int | None): RNG seed.
-
-    Returns:
-        Oracle instance.
-    """
     if oracle_type == "perfect":
         return PerfectOracle(optimal_policy)
     if oracle_type == "noisy":
@@ -63,7 +39,6 @@ def make_oracle(oracle_type, optimal_policy, n_actions, accuracy=0.8, seed=None)
 # ---------------------------------------------------------------------------
 
 def _detect_success(env_name, info, terminated):
-    """Heuristic: decide whether the episode ended in success."""
     # FrozenLake marks success with info['is_success'] == 1
     if "is_success" in info:
         return bool(info["is_success"])
@@ -83,23 +58,6 @@ def train_qlearning(
     seed=None,
     env_name="",
 ):
-    """Train a Q-learning agent on *env* and return episode metrics.
-
-    Args:
-        env (OracleEnv or standard gym env): Environment to train in.
-        n_episodes (int): Number of training episodes.
-        max_steps (int): Maximum steps per episode.
-        alpha (float): Q-learning learning rate.
-        gamma (float): Discount factor.
-        epsilon_start (float): Initial exploration probability.
-        epsilon_end (float): Minimum exploration probability.
-        epsilon_decay (float): Per-episode epsilon decay factor.
-        seed (int | None): Agent RNG seed.
-        env_name (str): Environment name (used for success detection).
-
-    Returns:
-        EpisodeMetrics: Collected episode statistics.
-    """
     is_oracle = isinstance(env, OracleEnv)
     n_states = env.n_states if is_oracle else env.observation_space.n
     n_actions = env.n_actions if is_oracle else env.action_space.n
@@ -157,23 +115,6 @@ def train_sarsa(
     seed=None,
     env_name="",
 ):
-    """Train a SARSA agent on *env* and return episode metrics.
-
-    Args:
-        env (OracleEnv or standard gym env): Environment to train in.
-        n_episodes (int): Number of training episodes.
-        max_steps (int): Maximum steps per episode.
-        alpha (float): SARSA learning rate.
-        gamma (float): Discount factor.
-        epsilon_start (float): Initial exploration probability.
-        epsilon_end (float): Minimum exploration probability.
-        epsilon_decay (float): Per-episode epsilon decay factor.
-        seed (int | None): Agent RNG seed.
-        env_name (str): Environment name (used for success detection).
-
-    Returns:
-        EpisodeMetrics: Collected episode statistics.
-    """
     is_oracle = isinstance(env, OracleEnv)
     n_states = env.n_states if is_oracle else env.observation_space.n
     n_actions = env.n_actions if is_oracle else env.action_space.n
@@ -226,20 +167,6 @@ def train_sarsa(
 # ---------------------------------------------------------------------------
 
 def run_seeds(train_fn, env_factory, n_seeds, **train_kwargs):
-    """Run *train_fn* across multiple seeds and aggregate metrics.
-
-    Per-episode values are averaged across seeds, providing a mean over
-    ``n_seeds`` runs with the same configuration.
-
-    Args:
-        train_fn (callable): ``train_qlearning`` or ``train_sarsa``.
-        env_factory (callable): Zero-argument callable that returns a fresh env.
-        n_seeds (int): Number of independent seeds/runs.
-        **train_kwargs: Keyword arguments forwarded to *train_fn*.
-
-    Returns:
-        EpisodeMetrics: Metrics whose lists contain per-episode averages.
-    """
     all_rewards = []
     all_successes = []
     all_help_counts = []

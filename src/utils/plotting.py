@@ -1,5 +1,3 @@
-"""Plotting utilities for RL experiment results."""
-
 import os
 
 import matplotlib
@@ -17,21 +15,6 @@ def plot_learning_curves(
     window=100,
     save_path=None,
 ):
-    """Plot smoothed episode-reward curves for multiple configurations.
-
-    Args:
-        results (dict[str, EpisodeMetrics]): Mapping from configuration label
-            to metrics object.
-        title (str): Plot title.
-        xlabel (str): X-axis label.
-        ylabel (str): Y-axis label.
-        window (int): Smoothing window size.
-        save_path (str | None): File path to save the figure.  If ``None``,
-            the figure is returned without saving.
-
-    Returns:
-        matplotlib.figure.Figure: The generated figure.
-    """
     fig, ax = plt.subplots(figsize=(10, 6))
     for label, metrics in results.items():
         smoothed = metrics.smoothed_rewards(window=window)
@@ -54,17 +37,6 @@ def plot_success_rates(
     last_n=100,
     save_path=None,
 ):
-    """Bar chart of final success rates across configurations.
-
-    Args:
-        results (dict[str, EpisodeMetrics]): Mapping from label to metrics.
-        title (str): Plot title.
-        last_n (int): Number of final episodes used to compute the rate.
-        save_path (str | None): Optional file path to save the figure.
-
-    Returns:
-        matplotlib.figure.Figure: The generated figure.
-    """
     labels = list(results.keys())
     rates = [m.success_rate(last_n=last_n) for m in results.values()]
     colors = plt.get_cmap("tab10")(np.linspace(0, 1, len(labels)))
@@ -90,17 +62,6 @@ def plot_help_usage(
     last_n=100,
     save_path=None,
 ):
-    """Bar chart of mean help-usage fractions across configurations.
-
-    Args:
-        results (dict[str, EpisodeMetrics]): Mapping from label to metrics.
-        title (str): Plot title.
-        last_n (int): Number of final episodes used to compute the mean.
-        save_path (str | None): Optional file path to save the figure.
-
-    Returns:
-        matplotlib.figure.Figure: The generated figure.
-    """
     labels = list(results.keys())
     fractions = [m.mean_help_fraction(last_n=last_n) for m in results.values()]
     colors = plt.get_cmap("tab10")(np.linspace(0, 1, len(labels)))
@@ -128,23 +89,6 @@ def plot_multi_panel(
     window=100,
     last_n=100,
 ):
-    """Produce and save a single summary figure with two subplots.
-
-    The figure contains (left to right):
-    1. Smoothed learning curves
-    2. Help-usage fraction bar chart
-
-    Args:
-        results_dict (dict[str, EpisodeMetrics]): Mapping from config label to metrics.
-        env_name (str): Environment name (used in titles and file names).
-        algo_name (str): Algorithm name (used in titles and file names).
-        output_dir (str): Directory where the figure is saved.
-        window (int): Reward smoothing window.
-        last_n (int): Window for computing final metrics.
-
-    Returns:
-        matplotlib.figure.Figure: The combined summary figure.
-    """
     labels = list(results_dict.keys())
     colors = plt.get_cmap("tab10")(np.linspace(0, 1, len(labels)))
 

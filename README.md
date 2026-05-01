@@ -22,32 +22,6 @@ Three sets of experiments compare performance across:
 
 Evaluation metrics: cumulative reward, success rate, help usage fraction.
 
-## Project Structure
-
-```
-Limited-Oracle-Budget/
-├── requirements.txt
-├── src/
-│   ├── environments/
-│   │   └── oracle_env.py        # OracleEnv wrapper (augmented state + help action)
-│   ├── agents/
-│   │   ├── q_learning.py        # Tabular Q-learning agent
-│   │   └── sarsa.py             # Tabular SARSA agent
-│   ├── oracle/
-│   │   ├── oracle.py            # PerfectOracle, NoisyOracle, RandomOracle
-│   │   └── value_iteration.py   # Optimal policy via value iteration
-│   └── utils/
-│       ├── metrics.py           # EpisodeMetrics tracker
-│       └── plotting.py          # Plotting utilities
-├── experiments/
-│   ├── training.py              # Training loops and multi-seed runner
-│   └── run_experiments.py       # Main CLI experiment runner
-└── tests/
-    ├── test_oracle_env.py
-    ├── test_agents.py
-    └── test_oracle.py
-```
-
 ## Installation
 
 ```bash
